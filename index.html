@@ -92,6 +92,11 @@
             //console.log(hits);
             for (var i=0; i < hits.length; i++) {
               console.log('Type: ' + hits[i].type + " " + i);
+
+              var img_src = hits[i].image;
+              if (img_src == null) {
+                img_src = hits[i].imgSrc;
+              }
               all_results[hits[i].objectID] = hits[i];
               if (hits[i].type == 'nft') {
                 nfts.push(hits[i]);
@@ -106,7 +111,7 @@
                       <div class="col-1">
                         <input id="checkboxes" type="checkbox" value="` + hits[i].objectID + `"></div>
                       <div class="col-3" style="padding: 0 10px">
-                       <img width="150px" src="` + hits[i].image + `">
+                       <img width="150px" src="` + img_src + `">
                     </div>
                     <div class="col-5">
                       <div>`+ hits[i].title+`</div>
