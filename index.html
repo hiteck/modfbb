@@ -87,8 +87,8 @@
           var results_html = '';
           var search_keywords = $('#search-input').val();
 
-          //index.search(search_keywords, {filters:"NOT banned:true"}).then(({ hits }) => {
-          index.search(search_keywords).then(({ hits }) => {
+          index.search(search_keywords, {filters:"NOT banned:true"}).then(({ hits }) => {
+          //index.search(search_keywords).then(({ hits }) => {
             //console.log(hits);
             for (var i=0; i < hits.length; i++) {
               console.log('Type: ' + hits[i].type + " " + i);
@@ -155,22 +155,22 @@
             });
 
             // delete from main index
-            const prod_index = client.initIndex('testnet_featured_prod');
-            prod_index.deleteObjects(obj_id_list);
+            //const prod_index = client.initIndex('testnet_featured_prod');
+            //prod_index.deleteObjects(obj_id_list);
 
             // update main index with ban:true
-            //var ban_list = [];
-            //for (var j=0; j<obj_id_list.length; j++) {
-            //  ban_list[j] = {
-            //    'objectID': obj_id_list[j], 
-            //    'banned': true
-            //  }
-            //}
-            //console.log('ban_list: ' + ban_list);
-            //const prod_index = client.initIndex('testnet_featured_prod');
-            //prod_index.partialUpdateObjects(ban_list).then(({ objectIDs }) => {
-            //  console.log('Ban results: ' + objectIDs);
-            //});
+            var ban_list = [];
+            for (var j=0; j<obj_id_list.length; j++) {
+              ban_list[j] = {
+                'objectID': obj_id_list[j], 
+                'banned': true
+              }
+            }
+            console.log('ban_list: ' + ban_list);
+            const prod_index = client.initIndex('testnet_featured_prod');
+            prod_index.partialUpdateObjects(ban_list).then(({ objectIDs }) => {
+              console.log('Ban results: ' + objectIDs);
+            });
 
 
             alert('Success!');
