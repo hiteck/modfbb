@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+    <title>modfbb</title>
+
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"></script> 
+
+    <!-- for the search only version -->
+    <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4.5.1/dist/algoliasearch-lite.umd.js"></script>
+
+    <!-- for the default version -->
+    <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4.5.1/dist/algoliasearch.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+
+    <style>
+
+    body {
+      margin: 40px 60px;
+    }
+
+    .alg-result {
+      border:  1px solid #999;
+      font-size: 11px;
+    }
+    .result-desc {
+      font-size: 11px;
+    }
+
+    .row-result {
+      padding: 10px 20px;
+      border-bottom:  1px solid #999;
+    }
+    </style>
+ 
+  </head>
+  
+  <body>
+
+      <h1>ModFBB</h1>
+
+      <div style="padding: 20px 40px; background-color: #EFEFEF">
+        <input type="text" id="algolia-key" placeholder="Algolia API key">
+        &nbsp;<input type="text" id="aws-key" placeholder="AWS API key">
+      </div>
+
+      <div style="margin: 20px 0">
+        <input type='search' id="search-input" placeholder="search keywords">
+        <input type='button' id="search-button" class="btn btn-primary" value="Search">
+        <input type='button' id="ban-button" value="BAN" class="btn btn-danger">
+      </div>
+
+      <div style="margin: 30px 0">
+        <div id='results' class="container">
+
+        </div>
+      </div>
+
+
+    <script>
+
+      var algolia_key = "";
+      var nfts = [];
+      var users = [];
+      var collections = [];
+      var all_results = [];
+      var client = null;
+
+      function search() {
+
+        // 967e46d0e48b8af1982b501ec818d5cf
+        var api_key = $('#algolia-key').val();
+        if (api_key == "") {
+          alert('Please enter API key');
+        } else {
+          client = algoliasearch('E7JJ6XZDSK', api_key);
+          const index = client.initIndex('testnet_featured_prod');
+          var results_html = '';
+          var search_keywords = $('#search-input').val();
+
+          index.search(search_keywords).then(({ hits }) => {
+            //console.log(hits);
+            for (var i=0; i < hits.length; i++) {
+              console.log('Type: ' + hits[i].type + " " + i);
+              all_results[hits[i].objectID] = hits[i];
+              if (hits[i].type == 'nft') {
+                nfts.push(hits[i]);
+              } else if (hits[i].type == 'user') {
+                users.push(hits[i]);
+              } else if (hits[i].type == 'collection') {
+                collections.push(hits[i]);
+              }
+
+              if (hits[i].type == 'nft') {
+                results_html = results_html + `<div class="row row-result" class="alg-result"> 
+                      <div class="col-1">
+                        <input id="checkboxes" type="checkbox" value="` + hits[i].objectID + `"></div>
+                      <div class="col-3" style="padding: 0 10px">
+                       <img width="150px" src="` + hits[i].image + `">
+                    </div>
+                    <div class="col-5">
+                      <div>`+ hits[i].title+`</div>
+                      <div class="result-desc">`+ hits[i].description+`</div>
+                      <div class="result-desc">ID: <a href="https://featured.market/nft/`+ hits[i].objectID.replace('-','/') +`" target="_new">`+ hits[i].objectID + `</a></div>
+                    </div>
+                  </div>`;
+              }
+
+                $('#results').html(results_html);
+              console.log(hits[i]);
+
+            }
+            console.log(nfts.length + " " + users.length + " " + collections.length);
+          });
+        }
+      }
+
+      function findObj(objectID) {
+
+      }
+
+      function ban() {
+        var c = confirm('Confirm ban');
+
+        if (c) {
+          var obj_list = [];
+          var obj_id_list = [];
+            $('input:checked').each(function() {
+                //selected.push($(this).attr('name'));
+                console.log($(this).attr('value'));
+                obj_list.push(all_results[$(this).attr('value')]);
+                obj_id_list.push($(this).attr('value'));
+            });
+            console.log(obj_list);
+
+            // add to ban_prod index
+            const index = client.initIndex('ban_prod');
+            index.saveObjects(obj_list, {
+              autoGenerateObjectIDIfNotExist: false
+            }).then(({ objectIDs }) => {
+              console.log(objectIDs);
+            });
+
+            // delete from main index
+            const prod_index = client.initIndex('testnet_featured_prod');
+            prod_index.deleteObjects(obj_id_list);
+
+        }
+      }
+
+      $('#search-button').click(search);
+      $('#ban-button').click(ban);
+
+
+      //$(document).ready(initAlgolia());
+
+    </script>
+
+
+
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+
+
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT" crossorigin="anonymous"></script>
+    -->
+  </body>
+</html>
